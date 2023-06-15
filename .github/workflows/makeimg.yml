@@ -15,7 +15,6 @@ jobs:
 
       - name: Download aria2c
         run: |
-          sudo apt-get install -y aria2 squashfs-tools docker.io
           sudo systemctl start docker 
           sudo systemctl enable docker 
           sudo usermod -aG docker $USER
