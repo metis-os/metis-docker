@@ -25,6 +25,7 @@ jobs:
         run: |
           aria2c -o metis-linux.iso https://github.com/metis-os/Releases/releases/download/MetisLinux-20230613/metis-linux-runit-20230613-x86_64.iso
             file metis-linux.iso
+            du -h metis-linux.iso
             sudo mount -o loop metis-linux.iso rootfs 
             sudo unsquashfs -f -d unsquashfs/ $(find -type d -name filesystem.squashfs)
             sudo tar -C unsquashfs -C . | docker import - metis/v1
