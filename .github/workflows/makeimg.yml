@@ -1,0 +1,63 @@
+name: Convert METIS ISO to Docker Image and Publish Release
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Download aria2c
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y aria2
+
+      - name: Download ISO
+        run: |
+          aria2c -o metis-linux.iso https://github.com/metis-os/Releases/releases/download/MetisLinux-20230613/metis-linux-runit-20230613-x86_64.iso
+
+      - name: Build Docker Image
+        run: |
+          docker build -t metis-linux .
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Tag Docker Image
+        run: |
+          docker tag metis-linux ${{ secrets.DOCKER_USERNAME }}/metis-linux:latest
+
+      - name: Push Docker Image
+        run: |
+          docker push ${{ secrets.DOCKER_USERNAME }}/metis-linux:latest
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v1.0.0
+          release_name: Release 1.0.0
+          body: |
+            Description of the release.
+
+      - name: Upload Docker Image to Release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./
+          asset_name: metis-linux-docker-image.tar.gz
+          asset_content_type: application/x-gzip
+
